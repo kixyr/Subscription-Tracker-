@@ -1,5 +1,5 @@
 const saveSubscriptionToDB = require('./saveSubscriptionToDB.js');
-const { getNextMonth } = require('./analyseCSV.js');
+const { getNextMonth } = require('../utils/dateFunctions.js');
 
 function getNextMonthAsDate(date) {
   const [Day, Month, Year] = date.split('/');

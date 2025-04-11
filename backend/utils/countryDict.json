@@ -1,6 +1,5 @@
-const countryDict = Object.fromEntries(
-  Object.entries({
-    "abw": "Aruba",
+{
+  "abw": "Aruba",
     "afg": "Afghanistan",
     "ago": "Angola",
     "aia": "Anguilla",
@@ -249,8 +248,4 @@ const countryDict = Object.fromEntries(
     "zaf": "South Africa",
     "zmb": "Zambia",
     "zwe": "Zimbabwe"
-  })
-)
-
-module.exports = countryDict
-
+}

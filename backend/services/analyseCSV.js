@@ -1,5 +1,6 @@
-const countryDict = require('./countryCodes');
 const axios = require('axios')
+const {prevThreeDays, getNextDay, getPreviousMonth, getDownloadTimeDate } = require('../utils/dateFunctions')
+const countryDict = require('../utils/countryDict.json')
 
 /*
 Example CommBank CSV Expense Transaction
@@ -20,10 +21,7 @@ async function analyseCsv(file, downloadTime){
   return subscriptions
   }
 
-function checkSubInName(transaction, day,month, year, downloadTime){
-    const lowerCaseTransactions = transaction.toLowerCase()
-    return (lowerCaseTransactions.includes('subscr') || lowerCaseTransactions.includes('monthly') || lowerCaseTransactions.includes('premium') || lowerCaseTransactions.includes('plus'))  
-  }
+
   
 /* main function that iterates thorugh the current month and previous months for valid subscriptions
 it checks if the subscription name is in the transaction name and if the payment occurs once a month */
@@ -115,6 +113,62 @@ return subscriptions
 
 }
 
+
+
+/*filters file to remove all transactions that are obviously not subscriptions, such as transfers, refunds, and other transactions that are not related to subscriptions.It also groups transactions by month and day. */
+function preFilterFile(file){
+  let [currentDay, currentMonth, currentYear] = (file[0].Date).split('/')
+  
+  const filteredByDateFile = {}
+  let monthlyTransactions = {}
+  let dailyTransactions = []
+   file.forEach((transaction) =>{
+    // Skip this transaction if it's a positive amount or not a card transaction
+    if(Number(transaction.Amount) > 0 || !transaction.Transaction.split(' ').includes('Card') || transaction.Amount.includes('+')){
+      return
+    }
+    const [day, month, year] = (transaction.Date).split('/')
+   // If the day, month, or year changes, it's time to store the previous day's data
+    if(currentDay != day || currentMonth!=month || currentYear != year){
+      monthlyTransactions[currentDay+ '-' + currentMonth +'-'+ currentYear] = dailyTransactions
+      if(currentMonth != month || currentYear != year){
+
+        if (!filteredByDateFile[currentMonth + '-' + currentYear]) {
+          filteredByDateFile[currentMonth + '-' + currentYear] = {}
+      }
+      filteredByDateFile[currentMonth + '-' + currentYear] = monthlyTransactions
+      // Reset for the new month
+      monthlyTransactions = {}
+      }
+      
+      currentMonth = month
+      currentYear = year
+      currentDay = day
+       // Reset for new day
+      dailyTransactions =[]
+
+    }
+    dailyTransactions.push(transaction)
+  })
+  // Store the last day's transactions
+  if (dailyTransactions.length > 0) {
+    monthlyTransactions[currentDay + '-' + currentMonth + '-' + currentYear] = dailyTransactions;
+  }
+
+    // Store last month's transactions after loop ends
+    if (!filteredByDateFile[currentMonth + '-' + currentYear]) {
+      filteredByDateFile[currentMonth + '-' + currentYear] = {};
+    }
+    filteredByDateFile[currentMonth + '-' + currentYear] = monthlyTransactions
+    return filteredByDateFile
+}
+
+function checkSubInName(transaction){
+  const lowerCaseTransactions = transaction.toLowerCase()
+  return (lowerCaseTransactions.includes('subscr') || lowerCaseTransactions.includes('monthly') || lowerCaseTransactions.includes('premium') || lowerCaseTransactions.includes('plus'))  
+}
+
+
 /*checks if the word is valid and not an ID or area code as subscriptions may be the same with only differing areacode/ID */
 function isValidWord(word) {
   let letterCount = 0, numberCount = 0;
@@ -130,7 +184,7 @@ function isValidWord(word) {
   return word
 }
 
-
+/*gets the index from where the location starts in the transaction */
 async function getTransactionLocation(transaction) {
   //find index where card is located in the transaction name, as before this point is the location
   let mainTransac = transaction.findIndex((element) => element === 'card');
@@ -184,6 +238,8 @@ async function getTransactionLocation(transaction) {
   return mainTransac; 
 }
 
+/* This function only runs if checkSubInName returns true, meaning it's confirmed 
+to be a subscription so all we need to do is just extract the name. */
 async function ifSubscriptionInName(transaction){
   const transactionDetails = transaction.Transaction.toLowerCase().split(' ')
   let transacIndex = await getTransactionLocation(transactionDetails)
@@ -215,25 +271,18 @@ async function checkIfPaymentsSame(prevMonthTransaction , transaction, formatted
     console.log("yuuuur")
   }
   const prevMonthTransactionDetails = prevMonthTransaction.Transaction.toLowerCase().split(' ')
+
   //first words is always the company first name so they must be the same and payment must occur once in month
-  
   if((prevMonthTransaction.Amount != transaction.Amount) || (isValidWord(prevMonthTransactionDetails[0]) != isValidWord(transactionDetails[0])) || !checkIfPaymentOccursOnce(prevMonthTransaction, formattedFile)){
-    if(transactionDetails[0] === 'nba'){
-      console.log(transaction)
-      console.log(prevMonthTransaction)
-      console.log("----")
-    }
     return false
   }
 
   let transacIndex = await getTransactionLocation(transactionDetails)
-  console.log(transacIndex)
-  //let  prevMonthTransacIndex = await getTransactionLocation(prevMonthTransactionDetails)
-  //console.log(prevMonthTransacIndex)
-  // If location detection failed, assume payments are different
+
   if (transacIndex <= 0 ) {
     return false
   }
+
   const subName = []
   // reads the transaction backwards from the start of the location to the start of the compnay name
   while(transacIndex >= 0){
@@ -283,154 +332,4 @@ function checkIfPaymentOccursOnce(sameTransactionDate, file){
 
 }
 
-//gets the time the file was downloaded and formats it to a date
-  function getDownloadTimeDate(downloadTime){
-    const date = new Date(downloadTime);
-    const year = date.getUTCFullYear();  
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    return [day, month, year]
-  }
-
-  function prevThreeDays(day,month, year, minDays){
-    for(let i=0; i < minDays; i++){
-      const [previDay, previMonth, previYear] = prevDay(day, month , year)
-      day = previDay
-      month = previMonth
-      year = previYear
-    }
-    return [day, month, year]
-
-  }
-
-  function prevDay(day, month, year ){
-    const daysInMonth = {
-      "01": 31, "02": 28, "03": 31, "04": 30, "05": 31, "06": 30,
-      "07": 31, "08": 31, "09": 30, "10": 31, "11": 30, "12": 31
-  };
-
-  // Leap year check for February
-  if (month === "02") {
-      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-      if (isLeapYear) daysInMonth["02"] = 29;
-  }
-
-  let prevDay = Number(day) - 1;
-  let prevMonth = month;
-  let prevYear = year;
-
-  if (prevDay === 0 ) {
-    
-      prevMonth = String(Number(month) - 1).padStart(2, "0");
-
-      // If next month exceeds 12, reset to 01 and move to next year
-      if (prevMonth  === "00") {
-          prevMonth = "12";
-          prevYear = String(Number(year) - 1);
-      }
-      prevDay = daysInMonth[prevMonth]
-
-  }
-
-  return [String(prevDay).padStart(2, "0"), prevMonth, prevYear];
-  }
-
-  function getNextDay(day, month, year) {
-    const daysInMonth = {
-        "01": 31, "02": 28, "03": 31, "04": 30, "05": 31, "06": 30,
-        "07": 31, "08": 31, "09": 30, "10": 31, "11": 30, "12": 31
-    };
-
-    // Leap year check for February
-    if (month === "02") {
-        const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-        if (isLeapYear) daysInMonth["02"] = 29;
-    }
-
-    let nextDay = Number(day) + 1;
-    let nextMonth = month;
-    let nextYear = year;
-
-    // If next day exceeds days in the month, reset to 1 and move to next month
-    if (nextDay > daysInMonth[month]) {
-        nextDay = 1;
-        nextMonth = String(Number(month) + 1).padStart(2, "0");
-
-        // If next month exceeds 12, reset to 01 and move to next year
-        if (nextMonth > "12") {
-            nextMonth = "01";
-            nextYear = String(Number(year) + 1);
-        }
-    }
-
-    return [String(nextDay).padStart(2, "0"), nextMonth, nextYear];
-}
-
-function getPreviousMonth(day,month,year){
-  if(month === '01'){
-    return [day,'12',String(Number(year)-1)]
-  }
-
-  const formattedMonth = String(Number(month)-1).padStart(2, '0'); 
-  return [day,formattedMonth, year]
-
-}
-
-function getNextMonth(day, month, year){
-  if(month === '12'){
-    return [day,'01',String(Number(year)+1)]
-
-  }
-  const formattedMonth = String(Number(month)+1).padStart(2, '0'); 
-  return [day,formattedMonth, year]
-}
-
-/*filters file to remove all transactions that are obviously not subscriptions, such as transfers, refunds, and other transactions that are not related to subscriptions.It also groups transactions by month and day. */
-function preFilterFile(file){
-  let [currentDay, currentMonth, currentYear] = (file[0].Date).split('/')
-  
-  const filteredByDateFile = {}
-  let monthlyTransactions = {}
-  let dailyTransactions = []
-   file.forEach((transaction) =>{
-    // Skip this transaction if it's a positive amount or not a card transaction
-    if(Number(transaction.Amount) > 0 || !transaction.Transaction.split(' ').includes('Card') || transaction.Amount.includes('+')){
-      return
-    }
-    const [day, month, year] = (transaction.Date).split('/')
-   // If the day, month, or year changes, it's time to store the previous day's data
-    if(currentDay != day || currentMonth!=month || currentYear != year){
-      monthlyTransactions[currentDay+ '-' + currentMonth +'-'+ currentYear] = dailyTransactions
-      if(currentMonth != month || currentYear != year){
-
-        if (!filteredByDateFile[currentMonth + '-' + currentYear]) {
-          filteredByDateFile[currentMonth + '-' + currentYear] = {}
-      }
-      filteredByDateFile[currentMonth + '-' + currentYear] = monthlyTransactions
-      // Reset for the new month
-      monthlyTransactions = {}
-      }
-      
-      currentMonth = month
-      currentYear = year
-      currentDay = day
-       // Reset for new day
-      dailyTransactions =[]
-
-    }
-    dailyTransactions.push(transaction)
-  })
-  // Store the last day's transactions
-  if (dailyTransactions.length > 0) {
-    monthlyTransactions[currentDay + '-' + currentMonth + '-' + currentYear] = dailyTransactions;
-  }
-
-    // Store last month's transactions after loop ends
-    if (!filteredByDateFile[currentMonth + '-' + currentYear]) {
-      filteredByDateFile[currentMonth + '-' + currentYear] = {};
-    }
-    filteredByDateFile[currentMonth + '-' + currentYear] = monthlyTransactions
-    return filteredByDateFile
-}
-
-module.exports = {analyseCsv, getNextMonth}
+module.exports = {analyseCsv}

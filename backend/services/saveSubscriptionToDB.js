@@ -1,4 +1,4 @@
-const Users = require('./Models/users'); 
+const Users = require('../Models/users'); 
 
 async function saveSubscriptionToDB(subscriptionData, isFileUpload = false, userID) {
   try {
