@@ -1,0 +1,25 @@
+{
+  "name": "CSV Uploader",
+  "version": "0.1.0",
+  "description": "Gets your bank transactions via export and automatically sends it to website for analysis.",
+  "permissions": ["storage", "tabs", "downloads"],
+  "host_permissions": ["https://www.commbank.com.au/*", "http://localhost:5000/*"],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.commbank.com.au/*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  
+  "action": {
+    "default_icon": "hello_extensions.png",
+    "default_title": "CSV Uploader",
+    "default_popup": "popup.html"
+  },
+  "manifest_version": 3
+}

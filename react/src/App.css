@@ -1,0 +1,261 @@
+body{
+  font-family: Arial, Helvetica, sans-serif;
+}
+.navbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center; /* Aligns text and links vertically */
+  padding: 10px 20px;
+  gap: 70px;
+  background-color: #2a6f6f; /* Greenish-Blue */
+  color: white;
+  margin: 0;
+}
+
+
+.navbar-links {
+  display: flex;
+  gap: 20px; /* Adds spacing between links */
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+}
+.navbar-links a:hover {
+  text-decoration: underline; /* Or none if you want to remove it */
+}
+.container {
+  margin-top: 70px;
+  margin-left: 20px;
+  width: 75%;
+  border-collapse: collapse;
+}
+
+.container th, .container td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+/* Dark overlay background */
+/* Dark background overlay */
+/* Overlay background (darkens the screen) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Dark transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal box */
+.modal-content {
+  background: white;
+  width: 45vw;  /* Responsive width */
+  max-width: 500px;
+  padding: 25px;
+  border-radius: 12px; /* Soft rounded corners */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: center;
+}
+
+/* Title inside modal */
+.modal-content h2 {
+  color: #2a6f6f; /* Lightish green-blue */
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+/* Labels */
+.modal-content label {
+  display: block;
+  font-weight: bold;
+  margin: 5px 0;
+  color: #2a6f6f;
+}
+
+/* Input fields */
+.modal-content input,
+.modal-content select {
+  width:97%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px; /* Rounded edges */
+  font-size: 1rem;
+  background-color: #f7f7f7;
+  transition: 0.2s;
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+  border-color: #2a6f6f; /* Highlight color */
+  outline: none;
+}
+
+/* Modal buttons */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+/* Button styles */
+.cancel-btn,
+.back-btn,
+.next-btn {
+  padding: 10px 15px;
+  border: none;
+  max-width:20%;
+  border-radius: 8px; /* Rounded corners */
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancel-btn {
+  background: #e74c3c; /* Red */
+  color: white;
+}
+
+.back-btn {
+  background: #2a6f6f; /* Light blue-green */
+  color: white;
+  margin-left:145px;
+  
+
+}
+
+.next-btn {
+  background: #27ae60; /* Green */
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #c0392b; /* Darker red */
+}
+
+.back-btn:hover {
+  background: #1e5555; /* Darker blue-green */
+}
+
+.next-btn:hover {
+  background: #219653; /* Darker green */
+}
+
+/* Currency display */
+.modal-content p {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #2a6f6f;
+  margin-top: 5px;
+}
+
+/* Reminder buttons */
+.modal-content button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+}
+.billing{
+  display:flex;
+  gap:10px;
+}
+.every{
+  max-width:20%;
+}
+.time-period{
+  width:70%;
+}
+#date{
+  width:96%;
+
+}
+
+.blank-screen {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 9999;
+}
+#Type{
+  width: 100%;
+}
+
+/* Container for the whole dashboard */
+.dashboard-wrapper {
+  width: 90%;
+  max-width: 1100px;
+  margin: 2rem auto;
+  font-family: sans-serif;
+}
+
+/* Header and search row */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dashboard-header h3 {
+  font-size: 24px;
+  margin: 0;
+}
+h3{
+  margin-left: 20px;
+}
+.search-bar {
+  margin-left: 20px;
+  padding: 8px;
+  font-size: 14px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Table styling */
+.container {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+table th, table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Action buttons */
+.delete-btn, .edit-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.edit-btn {
+  background-color: #007bff;
+  color: white;
+}
+
